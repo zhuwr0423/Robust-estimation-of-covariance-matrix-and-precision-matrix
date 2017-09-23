@@ -1,0 +1,86 @@
+---
+title: "one time test"
+author: "Wanrong Zhu"
+date: "2017/9/20"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Example  
+```{r}
+library(mvtnorm)
+library(flare)
+library(Matrix)
+source("rob.r")
+source("datagenerate.r")
+n=50
+d=5
+p=200
+q=5
+s=1
+```
+
+```{r}
+#dataset: multivariate t dis with precision matrix with banding structure
+D=data_generator(n,d,p,q,0.6,"t","band", seq(0, 0, length.out=p),s) 
+rcov=robcov5(D$data)
+#lambda=seq(0.05,0.2,length.out = 20)
+r=sugm(rcov$cov , nlambda=20, lambda.min.ratio = 0.1, rho = NULL, method = "clime", sym = "or", shrink=NULL, prec = 1e-4, max.ite = 1e4, standardize = FALSE, perturb = TRUE, verbose = TRUE)
+#r=sugm(rcov$cov , lambda , rho = NULL, method = "clime", sym = "or", shrink=NULL, prec = 1e-4, max.ite = 1e4, standardize = FALSE, perturb = TRUE, verbose = TRUE)
+#m=sum(r$icov[[1]]*D$sigma)-determinant(r$icov[[1]])$modulus
+m=sum(r$icov[[1]]*rcov$cov)-determinant(r$icov[[1]])$modulus
+m
+Lambda=1
+for (i in 2:20){
+  #l=sum(r$icov[[i]]*D$sigma)-determinant(r$icov[[i]])$modulus
+  l=sum(r$icov[[i]]*rcov$cov)-determinant(r$icov[[i]])$modulus
+  print(l)
+  print(norm(D$omega-r$icov[[i]], "2"))
+  if (l<m){
+    m=l
+    Lambda=i
+  }
+}
+r$lambda[Lambda]
+prerob=r$icov[[Lambda]]
+c=sugm(D$data , lambda, rho = NULL, method = "clime", sym = "or", shrink=NULL, prec = 1e-4, max.ite = 1e4, standardize = FALSE, perturb = TRUE, verbose = TRUE)
+#m=sum(c$icov[[1]]*D$sigma)-determinant(c$icov[[1]])$modulus
+m=sum(c$icov[[1]]*c$sigma)-determinant(c$icov[[1]])$modulus
+m
+Lambda2=1
+for (i in 2:20){
+  #l=sum(c$icov[[i]]*D$sigma)-determinant(c$icov[[i]])$modulus
+  l=sum(c$icov[[i]]*c$sigma)-determinant(c$icov[[i]])$modulus
+  print(l)
+  print(norm(D$omega-c$icov[[i]], "2"))
+  if (l<m){
+    m=l
+    Lambda2=i
+  }
+}
+preclime=c$icov[[Lambda2]]
+image(D$omega, col = gray.colors(256), main="true precision")
+image(prerob, col = gray.colors(256), main="RCLIME")
+image(preclime, col = gray.colors(256), main="CLIME") 
+norm(D$omega-prerob,"2")
+norm(D$omega-preclime,"2")
+norm(D$omega,"2")
+
+image(D$sigma, col = gray.colors(256), main="true rov")
+image(rcov$cov, col = gray.colors(256), main="robust cov")
+image(c$sigma, col = gray.colors(256), main="sample rov")
+norm(D$sigma-rcov$cov,"2")
+norm(D$sigma-c$sigma,"2")
+norm(D$sigma,"2")
+
+View(rcov$cov)
+View(c$sigma)
+View(D$sigma)
+View(D$omega)
+View(prerob)
+View(preclime)
+
+sugm
+```
