@@ -81,6 +81,4 @@ View(D$sigma)
 View(D$omega)
 View(prerob)
 View(preclime)
-
-sugm
 ```
