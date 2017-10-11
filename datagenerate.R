@@ -54,21 +54,23 @@ data_generator=function(n=100,p=200,type="t",d=3, s=50, prob=0.9, model="band",q
     return(NULL)
   }
   sigma0=cov2cor(solve(omega0))
-  omega0=solve(sigma0)
+ 
   if (type=="mixnormal"){   
     Z =  matrix(rep(rbinom(n, 1, prob),p),n,p)
     data0 = (rmvnorm(n, sigma=sigma0) + rep(mu, each=n))*Z+ (rmvnorm(n, sigma=s*diag(p)) + rep(mu, each=n))*(1-Z)
     sigma0=prob^2*sigma0+(1-prob)^2*(s*diag(p)) 
-    omega0=solve(sigma0)
   }
-  if (type=="mixt"){   
+  else if (type=="mixt"){   
     Z =  matrix(rep(rbinom(n, 1, prob),p),n,p)
     data0 = (rmvt(n, sigma=(d-2)/d*sigma0, df=d) + rep(mu, each=n))*Z + (rmvt(n, sigma=(d-2)/d*s*diag(p), df=d) + rep(mu, each=n)) *(1-Z)
-    sigma0=prob^2*sigma0+(1-prob)^2*(s*diag(p)) 
-    omega0=solve(sigma0)
+    sigma0=prob^2*sigma0+(1-prob)^2*(s*diag(p))     
 }
-if (type=="t") data0=rmvt(n, sigma = (d-2)/d*sigma0, df=d) + rep(mu, each=n)
-if (type=="normal") data0=rmvnorm(n, sigma = sigma0) + rep(mu, each=n)
-val=list(omega=omega0, sigma=sigma0, data=data0)
-return (val)
+  else if (type=="t") {data0=rmvt(n, sigma = (d-2)/d*sigma0, df=d) + rep(mu, each=n)}
+  else if (type=="normal") {data0=rmvnorm(n, sigma = sigma0) + rep(mu, each=n)}
+  
+  omega0=solve(sigma0)
+  
+  val=list(omega=omega0, sigma=sigma0, data=data0)
+  
+  return (val)
 }
