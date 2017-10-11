@@ -18,7 +18,7 @@
 #Output:omega, sigma, data
 
 library(mvtnorm)
-data_generator=function(n=100,p=200,type="t",d=3, s=20, prob=0.9, model="band",q=5,rho=0.6, mu=seq(0, 0, length.out=p)){
+data_generator=function(n=100,p=200,type="t",d=3, s=50, prob=0.9, model="band",q=5,rho=0.6, mu=seq(0, 0, length.out=200)){
   omega0=matrix(nrow = p, ncol = p)
   if (model=="band"){
     for (i in 1:p){
@@ -63,11 +63,11 @@ data_generator=function(n=100,p=200,type="t",d=3, s=20, prob=0.9, model="band",q
   }
   if (type=="mixt"){   
     Z =  matrix(rep(rbinom(n, 1, prob),p),n,p)
-    data0 = (rmvt(n, sigma=sigma0, df=d) + rep(mu, each=n))*Z + (rmvt(n, sigma=s*diag(p), df=d) + rep(mu, each=n)) *(1-Z)
+    data0 = (rmvt(n, sigma=(d-2)/d*sigma0, df=d) + rep(mu, each=n))*Z + (rmvt(n, sigma=(d-2)/d*s*diag(p), df=d) + rep(mu, each=n)) *(1-Z)
     sigma0=prob^2*sigma0+(1-prob)^2*(s*diag(p)) 
     omega0=solve(sigma0)
 }
-if (type=="t") data0=rmvt(n, sigma = sigma0, df=d) + rep(mu, each=n)
+if (type=="t") data0=rmvt(n, sigma = (d-2)/d*sigma0, df=d) + rep(mu, each=n)
 if (type=="normal") data0=rmvnorm(n, sigma = sigma0) + rep(mu, each=n)
 val=list(omega=omega0, sigma=sigma0, data=data0)
 return (val)
